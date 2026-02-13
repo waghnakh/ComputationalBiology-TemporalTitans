@@ -193,7 +193,7 @@ def plot_case(ax, v6_max, D, title):
         
         ax.fill_between(valid_v1, valid_v6, v6_max, color='green', alpha=0.3, label='Feasible Region')
         ax.scatter([limit_v1], [v6_max], color='black', zorder=5)
-        ax.text(limit_v1, v6_max + 0.5, 'Max grens', ha='center')
+        ax.text(limit_v1, v6_max + 0.5, 'Max Limit', ha='center')
     else:
         # Als het onmogelijk is
         ax.text(5, (v6_max + D)/2, 'IMPOSSIBLE\n(Starting point > Max value)', 
@@ -202,8 +202,8 @@ def plot_case(ax, v6_max, D, title):
     # Opmaak
     ax.set_ylim(0, 15)
     ax.set_xlim(0, 10)
-    ax.set_xlabel('$v_1$ (Flux Cyclus)')
-    ax.set_ylabel('$v_6$ (Flux Enzym)')
+    ax.set_xlabel('$v_1$ (Cycle Flux)')
+    ax.set_ylabel('$v_6$ (Enzyme Flux)')
     ax.set_title(title)
     ax.legend(loc='lower right')
     ax.grid(True, alpha=0.3)
