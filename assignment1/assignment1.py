@@ -116,3 +116,114 @@ plt.xlabel('Time (seconds)')
 plt.ylabel('[S1] Concentration (g/L)')
 plt.legend()
 plt.show()
+
+#Question 2.4 (D) 
+
+ def plot_case(ax, v6_max, D, title):
+    # X-as range (v1)
+    v1 = np.linspace(0, 10, 100)
+    
+    # De relatie: v6 moet altijd v1 + D zijn
+    v6_needed = v1 + D
+    
+    
+    ax.plot(v1, v6_needed, label=f'Needed: $v_6 = v_1 + {D}$', color='blue', linewidth=2)
+    
+    
+    ax.axhline(y=v6_max, color='red', linestyle='--', label=f'Ceiling: $v_{6,max} = {v6_max}$')
+    
+    
+    if v6_max >= D:
+        # Het snijpunt is waar v1 + D = v6_max  -> v1 = v6_max - D
+        limit_v1 = v6_max - D
+        
+        valid_v1 = np.linspace(0, limit_v1, 100)
+        valid_v6 = valid_v1 + D
+        
+        ax.fill_between(valid_v1, valid_v6, v6_max, color='green', alpha=0.3, label='Feasible Region')
+        ax.scatter([limit_v1], [v6_max], color='black', zorder=5)
+        ax.text(limit_v1, v6_max + 0.5, 'Max grens', ha='center')
+    else:
+        # Als het onmogelijk is
+        ax.text(5, (v6_max + D)/2, 'IMPOSSIBLE\n(Starting point > Max value)', 
+                ha='center', color='red', fontsize=12, fontweight='bold')
+
+    # Opmaak
+    ax.set_ylim(0, 15)
+    ax.set_xlim(0, 10)
+    ax.set_xlabel('$v_1$ (Flux Cyclus)')
+    ax.set_ylabel('$v_6$ (Flux Enzym)')
+    ax.set_title(title)
+    ax.legend(loc='lower right')
+    ax.grid(True, alpha=0.3)
+
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
+
+
+plot_case(ax1, v6_max=12, D=4, title='Case 1: $v_{6,max} \geq D$ (Possible)')
+
+
+plot_case(ax2, v6_max=3, D=5, title='Case 2: $v_{6,max} < D$ (Impossible)')
+
+plt.tight_layout()
+plt.show()
+
+#Question 2.5 (E) 
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+plt.figure(figsize=(12, 8))
+
+
+v1 = np.linspace(0, 10, 200)
+D = 3.0
+v6_line = v1 + D
+
+
+plt.plot(v1, v6_line, color='black', linewidth=2, label='Mass Balance: $v_6 = v_1 + 3.0$')
+
+
+cap_A = 12.0
+limit_A = cap_A - D
+
+
+cap_B = 8.0
+limit_B = cap_B - D
+
+
+cap_C = 5.0
+limit_C = cap_C - D
+
+
+
+# Feasible Space A 
+v1_A = np.linspace(0, limit_A, 100)
+plt.plot(v1_A, v1_A + D, color='blue', linewidth=10, alpha=0.3, label='Feasible Space A')
+plt.axhline(y=cap_A, color='darkblue', linestyle='--', label='Cap A (Baseline): $V_{max}$ is high')
+
+# Feasible Space B 
+v1_B = np.linspace(0, limit_B, 100)
+plt.plot(v1_B, v1_B + D, color='orange', linewidth=7, alpha=0.6, label='Feasible Space B')
+plt.axhline(y=cap_B, color='orange', linestyle='--', label='Cap B (Lower $V_{max}$): Ceiling drops')
+
+# Feasible Space C 
+v1_C = np.linspace(0, limit_C, 100)
+plt.plot(v1_C, v1_C + D, color='red', linewidth=4, alpha=1.0, label='Feasible Space C')
+plt.axhline(y=cap_C, color='red', linestyle='--', label='Cap C (Higher $K_m$): Effective cap drops further')
+
+
+plt.ylim(0, 15)
+plt.xlim(0, 10)
+plt.xlabel('Flux $v_1$ (Upper Cycle)', fontsize=12)
+plt.ylabel('Flux $v_6$ (Lower Cycle)', fontsize=12)
+plt.title('Impact of $V_{max}$ and $K_m$ on the $v_1$ vs $v_6$ Solution Space', fontsize=14)
+
+
+plt.grid(True, linestyle=':', alpha=0.6)
+plt.legend(loc='upper left', fontsize=10, framealpha=0.9)
+
+
+plt.tight_layout()
+plt.show()
