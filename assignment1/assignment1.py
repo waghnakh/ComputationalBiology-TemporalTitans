@@ -111,7 +111,7 @@ else:
 
 surf = ax.plot_surface(S1_grid, S2_grid, Rate_grid, cmap="viridis", alpha=0.6)
 ax.scatter(s1, s2, rate, color="black", s=20, label="Experimental Data")
-ax.set_title("Innovative Plot 2: 3D Global Rate Surface")
+ax.set_title("3D Global Rate Surface")
 ax.set_xlabel("[S1] (mM)")
 ax.set_ylabel("[S2] (mM)")
 ax.set_zlabel("Rate (mM/s)")
