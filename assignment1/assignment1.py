@@ -273,3 +273,30 @@ plt.legend(loc='upper left', fontsize=10, framealpha=0.9)
 
 plt.tight_layout()
 plt.show()
+
+fig = plt.figure(figsize=(12, 8))
+ax = fig.add_subplot(111, projection='3d')
+
+succ_vals = np.linspace(1e-6, 15, 50)
+fum_vals  = np.linspace(1e-6, 15, 50)
+SUCC, FUM = np.meshgrid(succ_vals, fum_vals)
+
+Rate_reversible = (Vmax_A * SUCC) / (Km_A + SUCC) - (Vmax_A * FUM) / (Km_A + FUM)
+
+surf = ax.plot_surface(SUCC, FUM, Rate_reversible, cmap='coolwarm', edgecolor='none', alpha=0.8)
+
+D_plane = np.full_like(Rate_reversible, D)
+ax.plot_surface(SUCC, FUM, D_plane, color='gray', alpha=0.3)
+
+
+
+ax.set_title('Reversible MM Flux Surface & Biomass Demand Plane', fontsize=14)
+ax.set_xlabel('Substrate [Succ] (mM)')
+ax.set_ylabel('Product [Fum] (mM)')
+ax.set_zlabel('Net Flux Capacity v6')
+
+ax.text2D(0.05, 0.95, "Gray Plane = Minimum Flux Required for Biomass (D)",
+          transform=ax.transAxes, bbox=dict(facecolor='white', alpha=0.8))
+
+plt.show()
+
