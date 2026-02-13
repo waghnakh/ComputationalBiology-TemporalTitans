@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from sklearn.metrics import r2_score
+from mpl_toolkits.mplot3d import Axes3D
+
 
 
 df = pd.read_csv('/Users/aakash/Downloads/Kinetics.csv')
@@ -72,3 +74,45 @@ time_sec = (1/Vmax_ext) * ((s1_0 - s1_t) + Km1_ext * np.log(s1_0/s1_t))
 print(f"\nInitial S1: {s1_0:.2f} mM")
 print(f"Final S1: {s1_t:.2f} mM")
 print(f"Time required: {time_sec:.2f} seconds ({time_sec/60:.2f} minutes)")
+
+#Additional plots 
+
+Vmax, Km_S1, Km_S2 = Vmax_ext, Km1_ext, 0.1 
+fig = plt.figure(figsize=(10, 7))
+ax = fig.add_subplot(111, projection='3d')
+s1_range = np.linspace(0.01, 1.0, 30)
+s2_range = np.linspace(0.05, 1.0, 30)
+S1_grid, S2_grid = np.meshgrid(s1_range, s2_range)
+Rate_grid = (Vmax * S1_grid * S2_grid) / (Km_S2 * S1_grid + Km_S1 * S2_grid + S1_grid * S2_grid)
+
+surf = ax.plot_surface(S1_grid, S2_grid, Rate_grid, cmap='viridis', alpha=0.6)
+ax.scatter(s1, s2, rate, color='black', s=20, label='Experimental Data')
+ax.set_title('Innovative Plot 2: 3D Global Rate Surface')
+ax.set_xlabel('[S1] (mM)')
+ax.set_ylabel('[S2] (mM)')
+ax.set_zlabel('Rate (mM/s)')
+plt.show()
+
+pred_rate = (Vmax * s1 * s2) / (Km_S2 * s1 + Km_S1 * s2 + s1 * s2)
+residuals = rate - pred_rate
+plt.figure(figsize=(8, 4))
+plt.scatter(pred_rate, residuals, color='purple', alpha=0.6)
+plt.axhline(0, color='black', lw=1)
+plt.title('Residual Distribution')
+plt.xlabel('Predicted Rate (mM/s)')
+plt.ylabel('Residuals (Observed - Predicted)')
+plt.show()
+
+S0_mM = (100 / 150) * 1000 
+St_mM = np.linspace(S0_mM, (0.5/150)*1000, 100) # Simulating down to 0.5 g/L
+t_sim = (1/Vmax) * ((S0_mM - St_mM) + Km_S1 * np.log(S0_mM / St_mM))
+
+plt.figure(figsize=(8, 5))
+plt.plot(t_sim, St_mM * 150 / 1000, color='teal', lw=2.5)
+plt.axhline(1, color='orange', ls='--', label='Target (1 g/L)')
+plt.fill_between(t_sim, St_mM * 150 / 1000, color='teal', alpha=0.1)
+plt.title('Progress Curve')
+plt.xlabel('Time (seconds)')
+plt.ylabel('[S1] Concentration (g/L)')
+plt.legend()
+plt.show()
