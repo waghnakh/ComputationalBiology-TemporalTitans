@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from sklearn.metrics import r2_score
 from mpl_toolkits.mplot3d import Axes3D
+from scipy.stats import chisquare
 
 
 
@@ -27,16 +28,21 @@ try:
     popt_seq, _ = curve_fit(sequential_mech, (s1, s2), rate, p0=[1, 0.1, 0.1, 0.1])
     pred_seq = sequential_mech((s1, s2), *popt_seq)
     r2_seq = r2_score(rate, pred_seq)
+    chi2_seq, _ = chisquare(f_obs=rate, f_exp=pred_seq)
     
     popt_pp, _ = curve_fit(ping_pong_mech, (s1, s2), rate, p0=[1, 0.1, 0.1])
     pred_pp = ping_pong_mech((s1, s2), *popt_pp)
     r2_pp = r2_score(rate, pred_pp)
+    chi2_pp, _ = chisquare(f_obs=rate, f_exp=pred_pp)
 
     print(f"R-squared Sequential: {r2_seq:.5f}")
     print(f"R-squared Ping-Pong: {r2_pp:.5f}")
+
+    print(f"Chi-squared Sequential: {chi2_seq:.5e}")
+    print(f"Chi-squared Ping-Pong : {chi2_pp:.5e}")
     
-    best_popt = popt_seq if r2_seq > r2_pp else popt_pp
-    mechanism = "Sequential" if r2_seq > r2_pp else "Ping-Pong"
+    best_popt = popt_seq if chi2_seq < chi2_pp else popt_pp
+    mechanism = "Sequential" if chi2_seq < chi2_pp else "Ping-Pong"
     print(f"\nIdentified Mechanism: {mechanism}")
 
 except Exception as e:
@@ -119,7 +125,7 @@ plt.show()
 
 #Question 2.4 (D) 
 
- def plot_case(ax, v6_max, D, title):
+def plot_case(ax, v6_max, D, title):
     # X-as range (v1)
     v1 = np.linspace(0, 10, 100)
     
@@ -171,8 +177,6 @@ plt.show()
 
 #Question 2.5 (E) 
 
-import numpy as np
-import matplotlib.pyplot as plt
 
 plt.figure(figsize=(12, 8))
 
