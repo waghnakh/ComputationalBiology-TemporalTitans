@@ -1,0 +1,134 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{graphicx}
+
+\title{Computational Biology - Assignment 2 - Equations/model file}
+\author{Yanick Idsinga, Rakesh Rohan Kanhai, Aakash Anandakrishnan}
+\date{February 13th, 2026}
+
+\begin{document}
+
+\maketitle
+
+
+
+\section*{Task 1a \& 2a: Hidden Markov Model (Viterbi Algorithm)}
+
+\begin{align}
+    dp[j, 0] &= \log \pi_j + \log B_{j, obs_0} \\
+    dp[j, t] &= \max_{i} \left( dp[i, t-1] + \log A_{i, j} \right) + \log B_{j, obs_t}
+\end{align}
+
+\textbf{Variable Notations:}
+\begin{itemize}
+    \item $dp[j, t]$: Log-probability of the most likely path ending in state $j$ at time $t$
+    \item $\pi_j$: Initial probability of starting in state $j$
+    \item $A_{i, j}$: Transition probability from state $i$ to state $j$
+    \item $B_{j, obs_t}$: Emission probability of observation $obs_t$ from state $j$
+    \item $i, j$: Indices representing hidden states (Exon, Intron)
+    \item $t$: Index representing time step (position in the nucleotide sequence)
+\end{itemize}
+
+\section*{Task 1b: ODE Model (Normal State \& Patient Alpha)}
+
+\textbf{Normal State (Mutual Repression):}
+\begin{align}
+    \frac{dm_A}{dt} &= m_A \left( \frac{\theta_A^{n_A}}{\theta_A^{n_A} + p_B^{n_B}} \right) - \gamma_A m_A \\
+    \frac{dm_B}{dt} &= m_B \left( \frac{\theta_B^{n_B}}{\theta_B^{n_B} + p_A^{n_A}} \right) - \gamma_B m_B \\
+    \frac{dp_A}{dt} &= k_{PA} m_A - d_{PA} p_A \\
+    \frac{dp_B}{dt} &= k_{PB} m_B - d_{PB} p_B
+\end{align}
+
+\textbf{Patient Alpha (Mechanism I: Transcriptional Hijack):}
+\begin{align}
+    \frac{dm_B}{dt} &= m_B - \gamma_B m_B
+\end{align}
+
+\textbf{Variable Notations:}
+\begin{itemize}
+    \item $m_A, m_B$: Concentration of mRNA for Gene A and Gene B
+    \item $p_A, p_B$: Concentration of Protein A and Protein B
+    \item $m_A, m_B$ (Constants): Maximum transcription rates
+    \item $\gamma_A, \gamma_B$: mRNA degradation rates
+    \item $k_{PA}, k_{PB}$: Translation rates
+    \item $d_{PA}, d_{PB}$: Protein degradation rates
+    \item $\theta_A, \theta_B$: Binding affinity thresholds for repression
+    \item $n_A, n_B$: Hill coefficients
+\end{itemize}
+
+\section*{Task 2b: SDEVelo Model (Normal State \& Patient Beta)}
+
+\textbf{Normal State (Gene A \& Gene B):}
+\begin{align}
+    du_A &= \left[ m_A \left( \frac{\theta_A^{n_A}}{\theta_A^{n_A} + p_B^{n_B}} \right) - \beta_A u_A \right] dt + \sigma_{1A} dW_{1A} \\
+    ds_A &= \left[ \beta_A u_A - \gamma_A s_A \right] dt + \sigma_{2A} dW_{2A} \\
+    dp_A &= \left[ k_{PA} s_A - \delta_{PA} p_A \right] dt \\
+    du_B &= \left[ m_B \left( \frac{\theta_B^{n_B}}{\theta_B^{n_B} + p_A^{n_A}} \right) - \beta_B u_B \right] dt + \sigma_{1B} dW_{1B} \\
+    ds_B &= \left[ \beta_B u_B - \gamma_B s_B \right] dt + \sigma_{2B} dW_{2B} \\
+    dp_B &= \left[ k_{PB} s_B - \delta_{PB} p_B \right] dt
+\end{align}
+
+\textbf{Patient Beta (Mechanism II: Splicing Sabotage for Gene B):}
+\begin{align}
+    du_B &= \left[ m_B - \beta_B \left( \frac{\theta_B^{n_B}}{\theta_B^{n_B} + p_A^{n_A}} \right) u_B \right] dt + \sigma_{1B} dW_{1B} \\
+    ds_B &= \left[ \beta_B \left( \frac{\theta_B^{n_B}}{\theta_B^{n_B} + p_A^{n_A}} \right) u_B - \gamma_B s_B \right] dt + \sigma_{2B} dW_{2B}
+\end{align}
+
+\textbf{Variable Notations:}
+\begin{itemize}
+    \item $u_A, u_B$: Concentration of unspliced pre-mRNA 
+    \item $s_A, s_B$: Concentration of mature spliced mRNA
+    \item $\beta_A, \beta_B$: Splicing rates
+    \item $\delta_{PA}, \delta_{PB}$: Protein degradation rates (equivalent to $d_{PA}, d_{PB}$)
+    \item $\sigma_{1A}, \sigma_{2A}, \sigma_{1B}, \sigma_{2B}$: Stochastic noise intensities
+    \item $dW_{1A}, dW_{2A}, dW_{1B}, dW_{2B}$: Independent Wiener processes (Standard Brownian motion)
+\end{itemize}
+
+\section*{Bonus Task: Metabolic Effects (Lotka-Volterra)}
+
+\begin{align}
+    \frac{dR}{dt} &= \alpha R - \beta R E \\
+    \frac{dE}{dt} &= -\gamma E + \delta R E
+\end{align}
+
+\textbf{Equilibrium States \& Jacobian:}
+\begin{align}
+    R^* &= \frac{\gamma}{\delta}, \quad E^* = \frac{\alpha}{\beta} \\
+    J &= \begin{bmatrix} 0 & -\beta R^* \\ \delta E^* & 0 \end{bmatrix}
+\end{align}
+
+\textbf{Variable Notations:}
+\begin{itemize}
+    \item $R$: Concentration of Cellular Resource 
+    \item $E$: Concentration of Growth-Promoting Enzyme 
+    \item $\alpha$: Resource intrinsic growth rate
+    \item $\beta$: Resource consumption rate by the enzyme
+    \item $\gamma$: Enzyme natural decay/starvation rate
+    \item $\delta$: Enzyme growth rate derived from resource consumption
+    \item $R^*, E^*$: Non-trivial equilibrium points
+    \item $J$: Jacobian matrix evaluated at the equilibrium
+\end{itemize}
+
+\section*{Additional Plots}
+
+\textbf{Waddington Epigenetic Landscape (Pseudo Potential Energy):}
+\begin{align}
+    v &= \sqrt{\left(\frac{dp_A}{dt}\right)^2 + \left(\frac{dp_B}{dt}\right)^2} \\
+    U &= \ln(v + 0.05)
+\end{align}
+
+\textbf{Generational Tumor Growth (Logistic Map):}
+\begin{align}
+    x_{n+1} &= r x_n (1 - x_n)
+\end{align}
+
+\textbf{Variable Notations:}
+\begin{itemize}
+    \item $v$: Magnitude of the velocity vector in the phase portrait
+    \item $U$: Pseudo-potential energy defining the landscape
+    \item $x_n$: Normalized tumor population density at generation $n$
+    \item $r$: Proliferation drive parameter (dependent on Oncogene expression)
+\end{itemize}
+
+
+\end{document}
