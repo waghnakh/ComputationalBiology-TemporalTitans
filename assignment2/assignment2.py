@@ -9,8 +9,8 @@ from mpl_toolkits.mplot3d import Axes3D
 states = ["Exon", "Intron"]
 pi = np.array([0.5, 0.5]) # Table 2
 A = np.array([            # Table 1
-    [0.9, 0.1],  # Exon -> (Exon, Intron)
-    [0.2, 0.8]   # Intron -> (Exon, Intron)
+    [0.9, 0.1],  # Exon  (Exon, Intron)
+    [0.2, 0.8]   # Intron  (Exon, Intron)
 ])
 emit = {                  # Table 3
     "Exon":   {"A": 0.25, "U": 0.25, "G": 0.25, "C": 0.25},
@@ -91,12 +91,12 @@ print("Inferred mechanism for beta :", infer_mechanism(df_beta["Viterbi_state"].
 
 
 p_ode = dict(
-    mA=2.35, mB=2.35,       # Max transcription rates
+    mA=2.35, mB=2.35,   # Max transcription rates
     gammaA=1.0, gammaB=1.0, # mRNA degradation
-    kPA=1.0, kPB=1.0,       # Translation rates
+    kPA=1.0, kPB=1.0,  # Translation rates
     thetaA=0.21, thetaB=0.21, # Binding thresholds
-    nA=3, nB=3,             # Hill coefficients
-    dPA=1.0, dPB=1.0        # Protein degradation
+    nA=3, nB=3,  # Hill coefficients
+    dPA=1.0, dPB=1.0  # Protein degradation
 )
 
 y0_ode = [0.8, 0.8, 0.8, 0.8] # [mA, mB, pA, pB] (from Table 5)
@@ -104,7 +104,6 @@ y0_ode = [0.8, 0.8, 0.8, 0.8] # [mA, mB, pA, pB] (from Table 5)
 def ode_normal(t, y):
     mA, mB, pA, pB = y
     p = p_ode
-    # Mutual repression (Normal state)
     dmA = p["mA"] * (p["thetaA"]**p["nA"] / (p["thetaA"]**p["nA"] + pB**p["nB"])) - p["gammaA"] * mA
     dmB = p["mB"] * (p["thetaB"]**p["nB"] / (p["thetaB"]**p["nB"] + pA**p["nA"])) - p["gammaB"] * mB
     dpA = p["kPA"] * mA - p["dPA"] * pA
@@ -114,7 +113,6 @@ def ode_normal(t, y):
 def ode_patient_alpha(t, y):
     mA, mB, pA, pB = y
     p = p_ode
-    # Mechanism I: Protein A fails to repress Gene B transcription. B transcribes constitutively.
     dmA = p["mA"] * (p["thetaA"]**p["nA"] / (p["thetaA"]**p["nA"] + pB**p["nB"])) - p["gammaA"] * mA
     dmB = p["mB"] - p["gammaB"] * mB 
     dpA = p["kPA"] * mA - p["dPA"] * pA
@@ -158,27 +156,25 @@ plt.show()
 
 
 p_sde = dict(
-    aA=1.0, aB=0.25,                 # SDEVelo specific
-    bA=0.0005, bB=0.0005,            # SDEVelo specific
-    cA=2.0, cB=0.5,                  # SDEVelo specific
-    mA=2.35, mB=2.35,                # Transcription
-    betaA=2.35, betaB=2.35,          # Splicing
-    gammaA=1.0, gammaB=1.0,          # mRNA degradation
-    kPA=1.0, kPB=1.0,                # Translation
-    deltaPA=1.0, deltaPB=1.0,        # Protein degradation
-    thetaA=0.21, thetaB=0.21,        # Thresholds
-    nA=3, nB=3,                      # Hill coefficients
-    sigma1A=0.05, sigma2A=0.05,      # Specific Noise (Gene A)
-    sigma1B=0.05, sigma2B=0.05       # Specific Noise (Gene B)
+    aA=1.0, aB=0.25,                 
+    bA=0.0005, bB=0.0005,            
+    cA=2.0, cB=0.5,                 
+    mA=2.35, mB=2.35,     # Transcription
+    betaA=2.35, betaB=2.35,  # Splicing
+    gammaA=1.0, gammaB=1.0, # mRNA degradation
+    kPA=1.0, kPB=1.0,   # Translation
+    deltaPA=1.0, deltaPB=1.0, # Protein degradation
+    thetaA=0.21, thetaB=0.21, # Thresholds
+    nA=3, nB=3, # Hill coefficients
+    sigma1A=0.05, sigma2A=0.05, # Specific Noise (Gene A)
+    sigma1B=0.05, sigma2B=0.05  # Specific Noise (Gene B)
 )
 
 def simulate_sdevelo(is_patient_beta=False, T=30, dt=0.01, seed=42):
     np.random.seed(seed)
-    # Fixed time grid exactness
     steps = int(T/dt) + 1
     t = np.linspace(0, T, steps)
     
-    # [uA, sA, pA, uB, sB, pB] Initial conditions = 0.8
     uA, sA, pA = np.full(steps, 0.8), np.full(steps, 0.8), np.full(steps, 0.8)
     uB, sB, pB = np.full(steps, 0.8), np.full(steps, 0.8), np.full(steps, 0.8)
     
@@ -186,20 +182,17 @@ def simulate_sdevelo(is_patient_beta=False, T=30, dt=0.01, seed=42):
     sq_dt = np.sqrt(dt)
 
     for i in range(1, steps):
-        # Specific independent noise terms
         dW1A = np.random.normal(0, sq_dt) * p["sigma1A"]
         dW2A = np.random.normal(0, sq_dt) * p["sigma2A"]
         dW1B = np.random.normal(0, sq_dt) * p["sigma1B"]
         dW2B = np.random.normal(0, sq_dt) * p["sigma2B"]
         
-        # Gene A logic 
         transcription_A = p["mA"] * (p["thetaA"]**p["nA"] / (p["thetaA"]**p["nA"] + pB[i-1]**p["nB"]))
         uA[i] = uA[i-1] + (transcription_A - p["betaA"]*uA[i-1])*dt + dW1A
         sA[i] = sA[i-1] + (p["betaA"]*uA[i-1] - p["gammaA"]*sA[i-1])*dt + dW2A
         pA[i] = pA[i-1] + (p["kPA"]*sA[i-1] - p["deltaPA"]*pA[i-1])*dt
         
-        # Gene B logic 
-        if is_patient_beta:         
+        if is_patient_beta:
             splicing_B_rate = p["betaB"] * (p["thetaB"]**p["nB"] / (p["thetaB"]**p["nB"] + pA[i-1]**p["nA"]))
             uB[i] = uB[i-1] + (p["mB"] - splicing_B_rate*uB[i-1])*dt + dW1B
             sB[i] = sB[i-1] + (splicing_B_rate*uB[i-1] - p["gammaB"]*sB[i-1])*dt + dW2B
@@ -210,7 +203,6 @@ def simulate_sdevelo(is_patient_beta=False, T=30, dt=0.01, seed=42):
             
         pB[i] = pB[i-1] + (p["kPB"]*sB[i-1] - p["deltaPB"]*pB[i-1])*dt
         
-        # Prevent negative concentrations due to noise
         uA[i], sA[i], pA[i] = max(uA[i], 0), max(sA[i], 0), max(pA[i], 0)
         uB[i], sB[i], pB[i] = max(uB[i], 0), max(sB[i], 0), max(pB[i], 0)
 
@@ -320,4 +312,203 @@ plt.xlim(0, 3.5)
 plt.ylim(0, 3.5)
 plt.grid(True, alpha=0.3)
 plt.legend(loc="upper right")
+plt.show()
+
+#Additional supporting graphs/plots!!
+
+def run_3d_sdevelo(T=30, dt=0.01):
+    steps = int(T/dt) + 1
+    uA, sA, pA = np.full(steps, 0.8), np.full(steps, 0.8), np.full(steps, 0.8)
+    uB, sB, pB = np.full(steps, 0.8), np.full(steps, 0.8), np.full(steps, 0.8)
+    sq_dt = np.sqrt(dt)
+    p = p_sde
+
+    for i in range(1, steps):
+        dW1A = np.random.normal(0, sq_dt) * p["sigma1A"]
+        dW2A = np.random.normal(0, sq_dt) * p["sigma2A"]
+        dW1B = np.random.normal(0, sq_dt) * p["sigma1B"]
+        dW2B = np.random.normal(0, sq_dt) * p["sigma2B"]
+        
+        trans_A = p["mA"] * (p["thetaA"]**p["nA"] / (p["thetaA"]**p["nA"] + pB[i-1]**p["nB"]))
+        uA[i] = uA[i-1] + (trans_A - p["betaA"]*uA[i-1])*dt + dW1A
+        sA[i] = sA[i-1] + (p["betaA"]*uA[i-1] - p["gammaA"]*sA[i-1])*dt + dW2A
+        pA[i] = pA[i-1] + (p["kPA"]*sA[i-1] - p["deltaPA"]*pA[i-1])*dt
+        
+        splice_B = p["betaB"] * (p["thetaB"]**p["nB"] / (p["thetaB"]**p["nB"] + pA[i-1]**p["nA"]))
+        uB[i] = uB[i-1] + (p["mB"] - splice_B*uB[i-1])*dt + dW1B
+        sB[i] = sB[i-1] + (splice_B*uB[i-1] - p["gammaB"]*sB[i-1])*dt + dW2B
+        pB[i] = pB[i-1] + (p["kPB"]*sB[i-1] - p["deltaPB"]*pB[i-1])*dt
+        
+        uB[i], sB[i], pB[i], pA[i] = max(uB[i], 0), max(sB[i], 0), max(pB[i], 0), max(pA[i], 0)
+        
+    return pA, pB, uB
+
+pA_3d, pB_3d, uB_3d = run_3d_sdevelo(T=40)
+
+fig = plt.figure(figsize=(10, 8))
+ax = fig.add_subplot(111, projection='3d')
+scatter = ax.scatter(pA_3d, pB_3d, uB_3d, c=np.linspace(0, 40, len(pA_3d)), cmap='coolwarm', s=2)
+ax.set_title("3D SDEVelo Manifold: The 'Ticking Time Bomb'", fontsize=14)
+ax.set_xlabel('Protein A (Suppressor)', fontweight='bold')
+ax.set_ylabel('Protein B (Oncogene)', fontweight='bold')
+ax.set_zlabel('Pre-mRNA B (The Hidden Reservoir)', fontweight='bold')
+cbar = plt.colorbar(scatter, ax=ax, shrink=0.5, pad=0.1)
+cbar.set_label('Time Elapsed (s)')
+plt.show()
+
+def ode_bifurcation(t, y, hijack_strength):
+    mA, mB, pA, pB = y
+    p = p_sde
+    dmA = p["mA"] * (p["thetaA"]**p["nA"] / (p["thetaA"]**p["nA"] + pB**p["nB"])) - p["gammaA"] * mA
+    repression_term = (p["thetaB"]**p["nB"] / (p["thetaB"]**p["nB"] + pA**p["nA"]))
+    actual_transcription = p["mB"] * ((1 - hijack_strength)*repression_term + hijack_strength*1.0)
+    dmB = actual_transcription - p["gammaB"] * mB 
+    dpA = p["kPA"] * mA - p["deltaPA"] * pA
+    dpB = p["kPB"] * mB - p["deltaPB"] * pB
+    return [dmA, dmB, dpA, dpB]
+
+
+ensemble_uB = []
+time_array = np.linspace(0, 30, int(30/0.01) + 1)
+
+for _ in range(30):
+    _, _, uB_traj = run_3d_sdevelo(T=30)
+    plt.plot(time_array, uB_traj, color='red', alpha=0.15, lw=1.5)
+    ensemble_uB.append(uB_traj)
+
+mean_uB = np.mean(ensemble_uB, axis=0)
+plt.plot(time_array, mean_uB, color='darkred', lw=3, label="Ensemble Average (Deterministic Trend)")
+
+plt.title("Stochastic Ensemble: Noise-Driven Splicing Sabotage", fontsize=14)
+plt.xlabel("Time (s)")
+plt.ylabel("Pre-mRNA B Concentration (M)")
+plt.text(5, 4.5, "Each faint red line is a unique cell simulation.\nNotice the variance in peak height due to molecular noise.", 
+         fontsize=10, bbox=dict(facecolor='white', alpha=0.8))
+plt.grid(True, alpha=0.3)
+plt.legend()
+plt.show()
+
+
+pA_grid = np.linspace(0.1, 3.5, 60)
+pB_grid = np.linspace(0.1, 3.5, 60)
+PA, PB = np.meshgrid(pA_grid, pB_grid)
+
+dpA_landscape = p_ode["kPA"] * (p_ode["mA"] * (p_ode["thetaA"]**p_ode["nA"] / (p_ode["thetaA"]**p_ode["nA"] + PB**p_ode["nB"])) / p_ode["gammaA"]) - p_ode["dPA"] * PA
+dmB_ss = (p_ode["mB"]) / p_ode["gammaB"] 
+dpB_landscape = p_ode["kPB"] * dmB_ss - p_ode["dPB"] * PB
+
+speed = np.sqrt(dpA_landscape**2 + dpB_landscape**2)
+energy = np.log(speed + 0.05)
+
+fig = plt.figure(figsize=(10, 8))
+ax = fig.add_subplot(111, projection='3d')
+surf = ax.plot_surface(PA, PB, energy, cmap='viridis_r', edgecolor='none', alpha=0.9)
+
+ax.set_title("The 'Attractor Basin' of the Cancer State", fontsize=14)
+ax.set_xlabel('Protein A (Tumor Suppressor)', fontweight='bold')
+ax.set_ylabel('Protein B (Oncogene)', fontweight='bold')
+ax.set_zlabel('Pseudo Potential Energy (U)', fontweight='bold')
+
+ax.scatter([sol_alpha.y[2][-1]], [sol_alpha.y[3][-1]], [np.min(energy)], 
+           color='red', s=100, label='Tumor Steady State', zorder=5)
+
+plt.legend()
+plt.show()
+
+
+grid_size = 20
+mA_vals = np.linspace(0.5, 5.0, grid_size)
+mB_vals = np.linspace(0.5, 5.0, grid_size)
+steady_state_pB = np.zeros((grid_size, grid_size))
+
+for i, test_mA in enumerate(mA_vals):
+    for j, test_mB in enumerate(mB_vals):
+        temp_p_ode = p_ode.copy()
+        temp_p_ode["mA"] = test_mA
+        temp_p_ode["mB"] = test_mB
+        
+        def sweep_ode(t, y):
+            mA, mB, pA, pB = y
+            dmA = temp_p_ode["mA"] * (temp_p_ode["thetaA"]**temp_p_ode["nA"] / (temp_p_ode["thetaA"]**temp_p_ode["nA"] + pB**temp_p_ode["nB"])) - temp_p_ode["gammaA"] * mA
+            dmB = temp_p_ode["mB"] * (temp_p_ode["thetaB"]**temp_p_ode["nB"] / (temp_p_ode["thetaB"]**temp_p_ode["nB"] + pA**temp_p_ode["nA"])) - temp_p_ode["gammaB"] * mB
+            dpA = temp_p_ode["kPA"] * mA - temp_p_ode["dPA"] * pA
+            dpB = temp_p_ode["kPB"] * mB - temp_p_ode["dPB"] * pB
+            return [dmA, dmB, dpA, dpB]
+        
+        sol = solve_ivp(sweep_ode, [0, 50], [0.8, 0.8, 0.8, 0.8], t_eval=[50])
+        steady_state_pB[j, i] = sol.y[3][-1] # Note: j is row (y axis mB), i is col (x axis mA)
+
+plt.figure(figsize=(9, 7))
+im = plt.imshow(steady_state_pB, extent=[min(mA_vals), max(mA_vals), min(mB_vals), max(mB_vals)], 
+           origin='lower', cmap='magma', aspect='auto')
+
+plt.contour(mA_vals, mB_vals, steady_state_pB, levels=[1.5], colors='white', linestyles='dashed', linewidths=2)
+
+plt.colorbar(im, label='Steady State Protein B (Oncogene)')
+plt.title("Cancer Phase Boundary: System Robustness\n(Varying Transcription Rates $m_A$ and $m_B$)", fontsize=14)
+plt.xlabel("Tumor Suppressor Max Transcription Rate ($m_A$)")
+plt.ylabel("Oncogene Max Transcription Rate ($m_B$)")
+plt.text(4.0, 1.0, "Healthy\nRegime", color='white', fontweight='bold', ha='center')
+plt.text(1.0, 4.0, "Cancer\nRegime", color='white', fontweight='bold', ha='center')
+plt.show()
+
+
+def logistic_map(r, x):
+    return r * x * (1 - x)
+
+n_points = 10000
+r_values = np.linspace(2.5, 4.0, n_points)
+iterations = 1000
+last = 100
+
+x = 1e-5 * np.ones(n_points)
+r_plot = []
+x_plot = []
+
+for i in range(iterations):
+    x = logistic_map(r_values, x)
+    if i >= (iterations - last):
+        r_plot.append(r_values)
+        x_plot.append(x)
+
+plt.figure(figsize=(12, 7))
+plt.plot(r_plot, x_plot, ',k', alpha=0.25) 
+plt.title("Generational Tumor Growth: Period Doubling Route to Chaos", fontsize=15)
+plt.xlabel("Proliferation Drive 'r' (Driven by Oncogene Protein B Expression)", fontsize=12)
+plt.ylabel("Tumor Population Density (Normalized)", fontsize=12)
+
+plt.axvline(x=3.0, color='blue', linestyle='--', alpha=0.6)
+plt.text(2.6, 0.1, "Stable Tumor\n(Early Stage)", color='blue', fontweight='bold')
+
+plt.axvline(x=3.54, color='orange', linestyle='--', alpha=0.6)
+plt.text(3.1, 0.1, "Boom Bust Cycles\n(Bifurcations)", color='orange', fontweight='bold')
+
+plt.text(3.7, 0.1, "Deterministic Chaos\n(Aggressive Malignancy)", color='red', fontweight='bold')
+
+plt.xlim(2.5, 4.0)
+plt.ylim(0, 1)
+plt.tight_layout()
+plt.show()
+
+
+r_chaos = 3.9  
+x_cobweb = np.linspace(0, 1, 500)
+y_cobweb = logistic_map(r_chaos, x_cobweb)
+
+plt.figure(figsize=(8, 8))
+plt.plot(x_cobweb, y_cobweb, 'r-', lw=2, label=f"Tumor Growth Map (r={r_chaos})")
+plt.plot(x_cobweb, x_cobweb, 'k--', label="Steady State Line ($P_{n+1} = P_n$)")
+
+x_current = 0.1
+for _ in range(50):
+    y_current = logistic_map(r_chaos, x_current)
+    plt.plot([x_current, x_current], [x_current, y_current], 'b-', alpha=0.5)
+    plt.plot([x_current, y_current], [y_current, y_current], 'b-', alpha=0.5)
+    x_current = y_current
+
+plt.title("Chaotic Tumor Attractor (Cobweb Plot)\nPatient Beta at Maximum Oncogene Drive", fontsize=14)
+plt.xlabel("Tumor Population at Generation $n$", fontsize=12)
+plt.ylabel("Tumor Population at Generation $n+1$", fontsize=12)
+plt.legend()
+plt.grid(True, alpha=0.3)
 plt.show()
