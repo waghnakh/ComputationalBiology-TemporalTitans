@@ -1,0 +1,126 @@
+\documentclass[12pt]{article}
+
+\usepackage{amsmath, amssymb}
+\usepackage{geometry}
+\geometry{margin=1in}
+
+\title{Bonus: Metabolic Downstream Model Analysis}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{(a) Biological Interpretation}
+
+The variable $R$ represents a metabolic resource, while $E$ represents an enzyme that interacts with that resource.\\
+The term $\alpha R$ describes growth or replenishment of the metabolic resource at rate $\alpha$.\\
+The term $-\beta R E$ describes how the enzyme uses up the resource. The rate of consumption depends on how much resource (R) and how much enzyme (E) are present. If either one is small, consumption is slow. If both are large, consumption is fast. The multiplication RE reflects that the enzyme and resource must come together for the reaction to occur.
+
+The parameter $\beta$ is a rate constant that determines how efficiently the enzyme consumes the resource. A larger $\beta$ means that each interaction between R and E removes more resource per unit time. A smaller $\beta$ means consumption happens more slowly.
+
+In the enzyme equation, $-\gamma E$ describes the natural degradation of the enzyme.\\
+The term $+\delta R E$ describes enzyme production or activation stimulated by the presence of the cellular resource.\\
+
+Together, these interactions create a feedback loop: the resource promotes enzyme growth, while the enzyme depletes the resource.
+
+\section*{(b) Equilibria and Stability Analysis}
+We determine the equilibrium points by setting the derivatives equal to zero. Equilibrium points represent steady states where the concentrations of the resource and enzyme no longer change. After identifying these steady states, we assess their stability to understand how the system behaves near them. This is done by computing the Jacobian matrix and evaluating its eigenvalues at each equilibrium point. The eigenvalues indicate whether small perturbations around a steady state will decay (stable), grow (unstable), or produce oscillations. Together, this procedure allows us to characterize the long-term dynamics of the metabolic system and determine whether it converges to a steady state, diverges, or exhibits sustained oscillatory behavior.
+
+\section*{(b) Equilibria and Stability}
+
+To determine the steady states of the system, we set the time derivatives equal to zero:
+\[
+\frac{dR}{dt} = \alpha R - \beta R E = 0,
+\qquad
+\frac{dE}{dt} = -\gamma E + \delta R E = 0.
+\]
+
+From the first equation,
+\[
+0 = R(\alpha - \beta E),
+\]
+which gives either
+\[
+R = 0
+\quad \text{or} \quad
+E = \frac{\alpha}{\beta}.
+\]
+
+From the second equation,
+\[
+0 = E(-\gamma + \delta R),
+\]
+which gives either
+\[
+E = 0
+\quad \text{or} \quad
+R = \frac{\gamma}{\delta}.
+\]
+
+Combining these conditions yields two equilibria:
+\[
+(0,0),
+\qquad
+\left(\frac{\gamma}{\delta}, \frac{\alpha}{\beta}\right).
+\]
+
+Substituting $\alpha=2$, $\beta=1.1$, $\gamma=1$, and $\delta=0.9$ gives
+\[
+(0,0),
+\qquad
+(1.111,\;1.818).
+\]
+
+To determine stability, we compute the Jacobian matrix
+\[
+J(R,E)=
+\begin{pmatrix}
+\alpha - \beta E & -\beta R \\
+\delta E & -\gamma + \delta R
+\end{pmatrix}.
+\]
+
+At $(0,0)$ the eigenvalues are $2$ and $-1$, so this equilibrium is a saddle point and therefore unstable.
+
+At $\left(\frac{\gamma}{\delta}, \frac{\alpha}{\beta}\right)$ the Jacobian simplifies to
+\[
+\begin{pmatrix}
+0 & -\beta R^* \\
+\delta E^* & 0
+\end{pmatrix},
+\]
+which gives eigenvalues
+\[
+\lambda = \pm i\sqrt{2}.
+\]
+
+Since the eigenvalues are purely imaginary, the interior equilibrium is a center, implying oscillatory behavior around $(1.111,1.818)$.
+
+\section*{(c) Nullclines and Phase Portrait}
+
+The nullclines are:
+
+\[
+R=0, \qquad E=0,
+\]
+\[
+E=\frac{\alpha}{\beta}\approx 1.818,
+\qquad
+R=\frac{\gamma}{\delta}\approx 1.111.
+\]
+
+These lines intersect at the equilibria. A stream plot would show:
+
+\begin{itemize}
+\item Saddle-type behavior at the origin.
+\item Closed orbits around $(1.111,1.818)$.
+\item Oscillatory dynamics due to reciprocal interaction between $R$ and $E$.
+\end{itemize}
+
+With initial condition $(1,0.5)$, the trajectory follows a closed orbit around the interior equilibrium.
+
+
+
+\end{document}
