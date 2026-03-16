@@ -400,5 +400,3 @@ if __name__ == "__main__":
         print("Success! The GIF has been saved. Your code suite is complete.")
     except Exception as e:
         print(f"\nSystem Error: {e}")
-
-

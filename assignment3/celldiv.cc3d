@@ -1,0 +1,5 @@
+<Simulation version="4.5.0">
+   <XMLScript Type="XMLScript">Simulation/celldiv.xml</XMLScript>
+   <PythonScript Type="PythonScript">Simulation/celldiv.py</PythonScript>
+   <Resource Type="Python">Simulation/celldivSteppables.py</Resource>
+</Simulation>

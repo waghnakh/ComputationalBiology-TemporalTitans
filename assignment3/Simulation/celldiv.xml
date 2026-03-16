@@ -1,0 +1,70 @@
+ <CompuCell3D>
+ <!-- Here I am defining the dimensions of my grid -->
+ <Potts>
+   <Dimensions x="100" y="100" z="1"/> 
+   <Steps>10000</Steps>
+   <Temperature>10</Temperature>
+   <NeighborOrder>2</NeighborOrder>
+ </Potts>
+
+<!-- Declaring that my cells have some volume, I will input the actual values per cell in my celldivSteppables.py file -->
+ <Plugin Name="Volume">
+ </Plugin>
+
+ <!-- Declaring what type of cells I have, in this example two types condensing  and non condensing -  Medium is not a cell in essence, it is just all the surface exluding the cells. -->
+<Plugin Name="CellType">
+    <CellType TypeName="Medium" TypeId="0"/>
+    <CellType TypeName="Condensing" TypeId="1"/>
+    <CellType TypeName="NonCondensing" TypeId="2"/>
+    <!-- <CellType Freeze="" TypeId="3" TypeName="new"/>  the Freeze="" key word creates an immobile cell type-->
+ </Plugin>
+
+ <!-- Here is where I define my adhesion characteristics, remember low energy they stick high energy they repel -->
+ <Plugin Name="Contact">
+   <Energy Type1="Medium" Type2="Medium">0</Energy>
+   <Energy Type1="NonCondensing" Type2="NonCondensing">100</Energy>
+   <Energy Type1="Condensing"    Type2="Condensing">2</Energy>
+   <Energy Type1="NonCondensing" Type2="Condensing">2</Energy>
+   <Energy Type1="NonCondensing" Type2="Medium">16</Energy>
+   <Energy Type1="Condensing"    Type2="Medium">16</Energy>
+   <NeighborOrder>2</NeighborOrder>
+ </Plugin>
+ 
+ <!-- Defining my external force acting on a cell -->
+<Plugin Name="ExternalPotential">
+   <Algorithm>CenterOfMassBased</Algorithm>
+   <ExternalPotentialParameters CellType="NonCondensing" x="-0.1" y="0.0" z="0.0"/>
+</Plugin>
+
+
+<!-- Defining my length constraint of cell: long or round or someother shaped cell -->
+<Plugin Name="LengthConstraint">
+   <LengthEnergyParameters CellType="Condensing" LambdaLength="2.0" TargetLength="5"/>
+   <LengthEnergyParameters CellType="NonCondensing" LambdaLength="2.0" TargetLength="5"/>
+</Plugin>
+
+<!-- In CPM there is a possibility of a cell fragmenting (breaking) and still existing, this is impossible in real life, this constraint check and adds a huge penalty if such a case were to arise -->
+<Plugin Name="ConnectivityGlobal">
+   <Penalty Type="Condensing">1000000</Penalty>
+   <Penalty Type="NonCondensing">1000000</Penalty>
+</Plugin>
+<Plugin Name="PixelTracker">
+   
+   <!-- Module tracking pixels of each cell -->
+</Plugin>
+
+
+<!-- I am stating my metabolites or nutrients or enzymes in my system here, I will access and solve them from the celldivStepables file later using finite volume solver fipy! -->
+<Steppable Type="DiffusionSolverFE">
+   
+   <!-- Specification of Fields in my simulation -->
+   <DiffusionField Name="METABOLITE1">
+   </DiffusionField>
+   <!-- Specification of Fields in my simulation -->
+   <DiffusionField Name="METABOLITE2">
+   </DiffusionField>
+</Steppable>
+
+
+
+</CompuCell3D>
